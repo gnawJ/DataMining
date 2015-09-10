@@ -9,13 +9,16 @@ __author__ = 'junwang'
 #     bodystring = str(body.next.string)
 #     tokens = nltk.word_tokenize(bodystring,language='english')
 #     print tokens
-def checkOnlyContainNumAndComma(string):
-    flag = True
-    validSet = ['1','2','3','4','5','6','7','8','9','0',',']
-    for c in string:
-        if c not in validSet:
-            return False
-    return flag
-
-a = '1000a'
-print checkOnlyContainNumAndComma(a)
+# def checkOnlyContainNumAndComma(string):
+#     flag = True
+#     validSet = ['1','2','3','4','5','6','7','8','9','0',',']
+#     for c in string:
+#         if c not in validSet:
+#             return False
+#     return flag
+#
+# a = '1000a'
+# print checkOnlyContainNumAndComma(a)
+a = 's'
+b = 'b'
+print a+b

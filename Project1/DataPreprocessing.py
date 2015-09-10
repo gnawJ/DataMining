@@ -59,15 +59,19 @@ def buildingIntermediateData1(soup,intermediateData1):
 
         # process body
         bodys = article.findAll('body')
-        if len(bodys) != 1:
-            raise ValueError('more than one body')
-        bodyDict = buidBodyDict(bodys[0])
-        intermediateData1[dateEntry] = [topicsList,placesList,bodyDict]
+        if len(bodys) == 1:
+            bodyDict = buidBodyDict(str(bodys[0].next.string))
+            intermediateData1[dateEntry] = [topicsList,placesList,bodyDict]
+        else:
+            mutiBodyString=''
+            for body in bodys:
+                mutiBodyString += str(body.next.string)
+                bodyDict = buidBodyDict(mutiBodyString)
+                intermediateData1[dateEntry] = [topicsList,placesList,bodyDict]
     return
-def buidBodyDict(body):
+def buidBodyDict(bodyString):
     gabageWords = ['.',',','<','!','@','#','$','%','^','&','*','(',')','_','+','=','?','/','~','`',';',':','>','reut']
     bodyDictionary = {} # {key: word, value: occur times}
-    bodyString = str(body.next.string)
     tokens = nltk.word_tokenize(bodyString,language='english')
     st = LancasterStemmer()
     # iterate every word in tokens. For efficient we want to do everything in this loop such as stemming and counting...
@@ -93,6 +97,7 @@ intermediateData1 = {}
 # read all files in a directory
 # TO Do ask user to type the path of data directory
 path = '/Users/junwang/Desktop/DataMining/Project1/TestDataset/'
+#path = '/Users/junwang/Desktop/DataMining/Data/'
 dir = os.listdir(path)
 # iterate each article in each file
 for file in dir:
