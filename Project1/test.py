@@ -19,6 +19,5 @@ __author__ = 'junwang'
 #
 # a = '1000a'
 # print checkOnlyContainNumAndComma(a)
-a = 's'
-b = 'b'
-print a+b
+for x in range(0,3):
+    print 'a'

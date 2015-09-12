@@ -1,8 +1,8 @@
 __author__ = 'Po Yao'
 __author__ = 'Jun wang'
 
-import operator
 import math
+from math import log10, floor
 import os, sys
 import nltk
 from nltk.stem.lancaster import LancasterStemmer
@@ -10,6 +10,9 @@ from BeautifulSoup import BeautifulSoup
 reload(sys)
 sys.setdefaultencoding('Cp1252')
 # functions go here
+
+def round_sig(x, sig=2):
+    return round(x, sig-int(floor(log10(x)))-1)
 def checkOnlyContainNumAndComma(string):
     flag = True
     validSet = ['0','2','3','4','5','6','7','8','9','1',',','.']
@@ -27,6 +30,7 @@ def checkOnlyContainNumAndComma(string):
 
 def buildingIntermediateData1(soup,intermediateData1,totalNumber):
     # iterate every article in the file
+    totalNumber = 0
     articles = soup.findAll('reuters')
     for article in articles:
         totalNumber += 1
@@ -92,6 +96,7 @@ def buidBodyDict(bodyString):
     return bodyDictionary
 
 def buildIntermediateData2AndWordsFreq(intermediateData1, wordsFreq, intermediateData2,IntermediateData3):
+
     for key in intermediateData1:
         words = intermediateData1[key][2]
         totalWords = 0
@@ -106,58 +111,40 @@ def buildIntermediateData2AndWordsFreq(intermediateData1, wordsFreq, intermediat
             else:
                 intermediateData2[word] += 1
             totalWords += words[word]
+
         IntermediateData3[key] = totalWords
-def calcTFForEachIntermediateData1(intermediateData1,intermediateData3):
-    TFForEachArticle={}
+
+def calcTFForEachIntermediateData1(TF,intermediateData1,intermediateData3):
     for key in intermediateData1:
         TFDic = {}
         words = intermediateData1[key][2]
-        TFValue = 0;
+        TFValue = 0
         for word in words:
             totalWords = intermediateData3[key]
             TFValue = words[word]/(totalWords * 1.0)
             TFDic[word] = TFValue
-        TFForEachArticle[key] = TFDic
-    return TFForEachArticle
+        TF[key] = TFDic
 
-def calcIDFForEachWord(totalNumber,intermediateData2):
-    IDF = {}
+def calcIDFForEachWord(IDF, totalNumber,intermediateData2):
     for word in intermediateData2:
         idfValue = math.log10((totalNumber*1.0)/(1+(intermediateData2[word]*1.0)))
         IDF[word] = idfValue
-    return  IDF
-def buildTFIDFValueForEachArticle(TF,IDF):
-    TFIDF = {}
+
+def buildTFIDFValueForEachArticle(TFIDF,TF,IDF):
     for article in TF:
         TFIDFForEachArticle = {}
         for word in TF[article]:
             TFIDFValue = TF[article][word] * IDF[word]
             TFIDFForEachArticle[word] = TFIDFValue
-    TFIDF[article] = TFIDFForEachArticle
-    return TFIDF
+        TFIDF[article] = TFIDFForEachArticle
+
 def buidFeatureVectorWay1(TFIDF):
     featureVec = []
     for article in TFIDF:
-        sortedValue = sorted(TFIDF[article].values())
-        num = len(sortedValue)
-        max1 = sortedValue[num-1]
-        max2 = sortedValue[num-2]
-        max3 = sortedValue[num-3]
-        attr1 = ''
-        attr2 = ''
-        attr3 = ''
-        for word in TFIDF[article]:
-            
-            #print TFIDF[article][word]
-            if (TFIDF[article][word] == max1 or TFIDF[article][word] == max2 or TFIDF[article][word] == max3) and (attr1 != ''):
-                attri1 = word
-            if (TFIDF[article][word] == max1 or TFIDF[article][word] == max2 or TFIDF[article][word] == max3) and (attr1 != ''):
-                attri2 = word
-            if (TFIDF[article][word] == max1 or TFIDF[article][word] == max2 or TFIDF[article][word] == max3) and (attr1 != ''):
-                attri3 = word
-        featureVec.append(attr1)
-        featureVec.append(attr2)
-        featureVec.append(attr3)
+            sort={}
+            sort = sorted(TFIDF[article].items(),key=lambda x:x[1], reverse=True)
+            for x in range(0,4):
+                featureVec.append(sort[x][0])
     return featureVec
 
 
@@ -187,14 +174,12 @@ for file in dir:
     sgm = open(path + file).read()
     soup = BeautifulSoup(''.join(sgm))
     # processing raw data step 1: build intermediateData1
-    totalNumber = buildingIntermediateData1(soup,intermediateData1,totalNumber)
-    buildIntermediateData2AndWordsFreq(intermediateData1,wordsFreq,intermediateData2,intermediateData3)
+    totalNumber += buildingIntermediateData1(soup,intermediateData1,totalNumber)
 
-TF = calcTFForEachIntermediateData1(intermediateData1,intermediateData3)
-IDF = calcIDFForEachWord(totalNumber,intermediateData2)
-TFIDF = buildTFIDFValueForEachArticle(TF,IDF)
-
-
-featureVec1 = buidFeatureVectorWay1(TFIDF)
-print featureVec1
+buildIntermediateData2AndWordsFreq(intermediateData1,wordsFreq,intermediateData2,intermediateData3)
+calcTFForEachIntermediateData1(TF,intermediateData1,intermediateData3)
+calcIDFForEachWord(IDF,totalNumber,intermediateData2)
+buildTFIDFValueForEachArticle(TFIDF,TF,IDF)
+v1 = buidFeatureVectorWay1(TFIDF)
+print v1
 
